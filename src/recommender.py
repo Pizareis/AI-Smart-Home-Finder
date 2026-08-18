@@ -25,7 +25,17 @@ PRIORITY_LABELS_TR = {
 }
 
 SUGGESTION_TOP_N = 2
-SUGGESTION_BUDGET_TOLERANCE = 1.10
+BUDGET_TOLERANCE = 1.10
+
+
+def _filter_hard_constraints(listings: pd.DataFrame, profile: UserProfile) -> pd.DataFrame:
+    """Butce ve oda tipi kullanicinin belirttigi kisitlar - skora degil, filtreye tabi."""
+    filtered = listings
+    if profile.budget_max and "price" in filtered.columns:
+        filtered = filtered[filtered["price"] <= profile.budget_max * BUDGET_TOLERANCE]
+    if profile.room_options and "room_count" in filtered.columns:
+        filtered = filtered[filtered["room_count"].isin(profile.room_options)]
+    return filtered
 
 
 def rank_listings(listings: pd.DataFrame, weights: dict[str, float] = DEFAULT_WEIGHTS) -> pd.DataFrame:
@@ -70,7 +80,7 @@ def _suggest_districts(
     candidates = district_stats[~district_stats["district"].isin(exclude)].copy()
 
     if profile.budget_max:
-        candidates = candidates[candidates["avg_price"] <= profile.budget_max * SUGGESTION_BUDGET_TOLERANCE]
+        candidates = candidates[candidates["avg_price"] <= profile.budget_max * BUDGET_TOLERANCE]
 
     if candidates.empty:
         return candidates, ""
@@ -107,7 +117,8 @@ def build_listing_comment(row: pd.Series, threshold: float = 0.8) -> str:
 def recommend(listings: pd.DataFrame, district_stats: pd.DataFrame, profile: UserProfile) -> dict:
     """Returns {"target": df, "alternatives": df, "suggested": df, "suggested_reason": str}."""
     weights = adjust_weights(profile.priorities)
-    ranked = rank_listings(listings, weights)
+    filtered_listings = _filter_hard_constraints(listings, profile)
+    ranked = rank_listings(filtered_listings, weights)
 
     target_districts = [profile.target_district] if profile.target_district else []
     target_listings = _filter_by_district(ranked, target_districts)
