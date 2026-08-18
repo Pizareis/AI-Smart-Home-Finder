@@ -1,52 +1,81 @@
 # AI-Powered Smart Home Finder
 
-Kullanıcının bütçesini, oda tercihini ve önceliklerini (üniversiteye yakınlık, güvenlik, yeşil alan, ulaşım, sessizlik vb.) analiz edip Bursa'daki farklı mahalleleri/ilanları puanlayan bir öneri sistemi prototipi. Gerçek emlak scraping yapılmaz; gerçekçi taban istatistiklere dayalı sentetik bir veri seti kullanılır.
+Kullanicinin serbest metinle anlattigi tercihleri (yas, ogrenci/calisan, okul/is konumu,
+butce, oda tercihi, oncelikler) yapilandirilmis veriye cevirip, bir ev veri seti uzerinde
+agirlikli bir puanlama/oneri algoritmasi calistiran ve sonuclari uc grupta sunan bir
+AI/Data Science recommendation sistemi prototipi (Bursa, tek sehir MVP).
 
-## Kapsam
+Bu gercek bir emlak platformu degildir; portfoy/CV amacli bir prototiptir.
 
-- Şehir: Bursa
-- Mahalleler: Görükle, Özlüce, Beşevler, Nilüfer, Çekirge, Heykel, Yıldırım, Mudanya
+## Ozellikler
 
-## Ekip
-
-- **Yağmur** — Data Science: veri seti, temizlik, EDA, feature engineering, puanlama
-- **Ömer** — Software/AI: proje yapısı, öneri algoritması, kullanıcı girişi, Streamlit arayüzü
+- Serbest metin -> yapilandirilmis kullanici profili (regex/keyword tabanli, stretch: LLM API)
+- Agirlikli skorlama: butce, ulasim, okula/ise uzaklik, guvenlik, ev ozellikleri, sosyal olanaklar
+- Uc gruplu semt sonuclari: istenen semt / alternatif semt(ler) / sistemin onerdigi semt(ler)
+- Streamlit arayuzu
 
 ## Kurulum
 
 ```bash
 python -m venv venv
-venv\Scripts\activate      # Windows
+venv\Scripts\activate  # Windows
 pip install -r requirements.txt
 ```
 
-## Kullanım
+## Kullanim
 
 ```bash
-# 1) Sentetik veri setini üret
+# 1) Sentetik veri setini + islenmis dosyalari uret
 python src/data_prep.py
 
-# 2) EDA'yı incele
-jupyter notebook notebooks/01_eda.ipynb
-
-# 3) Testleri çalıştır
-pytest tests/
-
-# 4) Uygulamayı başlat
-streamlit run src/app.py
+# 2) Uygulamayi baslat
+streamlit run app.py
 ```
 
-## Proje yapısı
+## Testler
+
+```bash
+pytest
+```
+
+## Veri Seti
+
+Gercek emlak scraping'i yapilmiyor: `src/data_prep.py`, Bursa'nin 8 semti icin
+(Görükle, Özlüce, Beşevler, Nilüfer, Çekirge, Heykel, Yıldırım, Mudanya) arastirmaci
+tarafindan secilen gercekci taban istatistiklere (m² basi kira, üniversiteye/merkeze/
+hastaneye uzaklik, yesil alan, güvenlik, ulasim, gürültü) gore semt basina 150 sentetik
+ilan uretir.
+
+Iki asamali pipeline:
+
+1. **Ham veri** (`data/raw/bursa_listings_synthetic.csv`) — insan-okunur olceklerde
+   (TL, km, 0-10 skor) ilan verisi. `notebooks/01_eda.ipynb` bu veri uzerinde calisir.
+2. **Feature engineering** (`data/processed/listings.csv`, `data/processed/district_stats.csv`) —
+   `src/scoring.py`'nin bekledigi semaya (district, price, area, room_count,
+   budget/transport/distance/safety/features/social — hepsi 0-1 normalize) cevrilmis hali.
+   `notebooks/02_feature_engineering.ipynb` bu donusumu adim adim gosterir.
+
+## Proje Yapisi
 
 ```
-data/
-  raw/          -> ham sentetik ilan verisi (bursa_listings_synthetic.csv)
-  processed/    -> mahalle bazlı özet profiller
-notebooks/
-  01_eda.ipynb  -> keşifsel veri analizi
-src/
-  data_prep.py  -> sentetik veri üretimi
-  scoring.py    -> öncelik ağırlıklı puanlama motoru
-  app.py        -> Streamlit arayüzü
-tests/          -> pytest testleri
+AI-Smart-Home-Finder/
+├── data/
+│   ├── raw/
+│   └── processed/
+├── notebooks/
+│   ├── 01_eda.ipynb
+│   └── 02_feature_engineering.ipynb
+├── src/
+│   ├── data_prep.py
+│   ├── scoring.py
+│   ├── recommender.py
+│   └── nlp_parser.py
+├── app.py
+├── requirements.txt
+└── README.md
 ```
+
+## Ekip
+
+- Yagmur — Data Science (veri seti, EDA, feature engineering)
+- Omer — Software/AI (algoritma, NLP parsing, Streamlit arayuzu, proje yapisi)

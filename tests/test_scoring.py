@@ -1,48 +1,34 @@
-import pandas as pd
-import pytest
-
-from scoring import _normalize, _score, recommend_listings, recommend_neighborhoods
+from src.scoring import DEFAULT_WEIGHTS, adjust_weights, compute_listing_score, normalize_budget_fit
 
 
-def test_normalize_higher_is_better_maps_min_max_to_0_and_1():
-    series = pd.Series([10, 20, 30])
-    normed = _normalize(series, higher_is_better=True)
-    assert normed.iloc[0] == pytest.approx(0.0)
-    assert normed.iloc[-1] == pytest.approx(1.0)
+def test_adjust_weights_no_priorities_returns_defaults():
+    assert adjust_weights([]) == DEFAULT_WEIGHTS
 
 
-def test_normalize_lower_is_better_inverts():
-    series = pd.Series([10, 20, 30])
-    normed = _normalize(series, higher_is_better=False)
-    assert normed.iloc[0] == pytest.approx(1.0)
-    assert normed.iloc[-1] == pytest.approx(0.0)
+def test_adjust_weights_sums_to_one():
+    weights = adjust_weights(["transport", "safety"])
+    assert abs(sum(weights.values()) - 1.0) < 1e-9
 
 
-def test_normalize_constant_series_returns_all_ones():
-    series = pd.Series([5, 5, 5])
-    normed = _normalize(series, higher_is_better=True)
-    assert (normed == 1.0).all()
+def test_adjust_weights_boosts_prioritized_keys():
+    weights = adjust_weights(["transport"])
+    assert weights["transport"] > DEFAULT_WEIGHTS["transport"]
+    assert weights["social"] < DEFAULT_WEIGHTS["social"]
 
 
-def test_score_raises_when_no_positive_weights():
-    df = pd.DataFrame({"safety_score": [1, 2, 3]})
-    with pytest.raises(ValueError):
-        _score(df, {"safety": 0}, granularity="neighborhood")
+def test_compute_listing_score_in_range():
+    listing = {"budget": 1.0, "transport": 0.8, "distance": 0.5, "safety": 0.9, "features": 0.6, "social": 0.3}
+    score = compute_listing_score(listing, DEFAULT_WEIGHTS)
+    assert 0.0 <= score <= 1.0
 
 
-def test_recommend_neighborhoods_sorted_descending_and_bounded():
-    result = recommend_neighborhoods({"affordability": 1, "safety": 1}, top_n=3)
-    assert len(result) == 3
-    assert result["match_score"].is_monotonic_decreasing
-    assert result["match_score"].between(0, 100).all()
+def test_normalize_budget_fit_within_budget():
+    assert normalize_budget_fit(15000, 20000) == 1.0
 
 
-def test_recommend_listings_respects_budget_and_room_type():
-    result = recommend_listings({"affordability": 1}, budget_try=20000, room_type="2+1")
-    assert (result["rent_try"] <= 20000).all()
-    assert (result["room_type"] == "2+1").all()
+def test_normalize_budget_fit_over_budget():
+    assert normalize_budget_fit(30000, 20000) == 0.5
 
 
-def test_recommend_listings_empty_when_budget_impossible():
-    result = recommend_listings({"affordability": 1}, budget_try=1)
-    assert result.empty
+def test_normalize_budget_fit_no_budget_given():
+    assert normalize_budget_fit(50000, None) == 1.0

@@ -1,105 +1,53 @@
-"""Weighted scoring: turn user priorities into a match score per neighborhood/listing.
+"""Agirlikli ev skoru hesaplama (Omer + Yagmur).
 
-User priorities are expressed as a dict of {priority_name: weight}, e.g.
-{"affordability": 3, "university_proximity": 2, "safety": 1}. Missing priorities
-default to weight 0. This is the core the Streamlit UI / recommendation layer
-calls after collecting budget, room count, and priority sliders from the user.
+Ev Skoru = %30 Butce + %25 Ulasim + %20 Okula/ise uzaklik + %10 Guvenlik
+           + %10 Ev ozellikleri + %5 Sosyal olanaklar
+
+Kullanici bir onceligi vurgularsa (orn. "ulasim") ilgili agirlik artirilir,
+digerleri toplam 1.0'e sabit kalacak sekilde orantili azaltilir (normalize).
+
+Not: compute_listing_score, listing icindeki alt skorlarin (budget, transport,
+distance, safety, features, social) 0-1 araliginda ONCEDEN normalize edilmis
+oldugunu varsayar. Ham veriden (price, transport_distance, ...) bu alt
+skorlari uretmek data_prep/feature engineering asamasinin isidir.
 """
 
-import sys
-from pathlib import Path
+SCORE_KEYS = ("budget", "transport", "distance", "safety", "features", "social")
 
-import pandas as pd
-
-if sys.platform == "win32":
-    sys.stdout.reconfigure(encoding="utf-8")
-
-DATA_DIR = Path(__file__).resolve().parent.parent / "data"
-
-# Canonical priority name -> (neighborhood-level column, listing-level column, higher_is_better)
-PRIORITY_MAP = {
-    "affordability": ("avg_rent_per_m2_try", "rent_try", False),
-    "university_proximity": ("avg_distance_to_university_km", "distance_to_university_km", False),
-    "center_proximity": ("avg_distance_to_center_km", "distance_to_center_km", False),
-    "hospital_proximity": ("avg_distance_to_hospital_km", "distance_to_hospital_km", False),
-    "green_space": ("green_space_score", "green_space_score", True),
-    "safety": ("safety_score", "safety_score", True),
-    "public_transport": ("public_transport_score", "public_transport_score", True),
-    "quietness": ("noise_level", "noise_level", False),
+DEFAULT_WEIGHTS = {
+    "budget": 0.30,
+    "transport": 0.25,
+    "distance": 0.20,
+    "safety": 0.10,
+    "features": 0.10,
+    "social": 0.05,
 }
 
-
-def load_neighborhood_profiles(path: Path | None = None) -> pd.DataFrame:
-    path = path or DATA_DIR / "processed" / "neighborhood_profiles_with_listing_stats.csv"
-    return pd.read_csv(path)
+PRIORITY_BOOST = 0.10
 
 
-def load_listings(path: Path | None = None) -> pd.DataFrame:
-    path = path or DATA_DIR / "raw" / "bursa_listings_synthetic.csv"
-    return pd.read_csv(path)
+def adjust_weights(priorities: list[str], base_weights: dict[str, float] = DEFAULT_WEIGHTS) -> dict[str, float]:
+    if not priorities:
+        return dict(base_weights)
+
+    weights = dict(base_weights)
+    for priority in priorities:
+        if priority in weights:
+            weights[priority] += PRIORITY_BOOST
+
+    total = sum(weights.values())
+    return {key: value / total for key, value in weights.items()}
 
 
-def _normalize(series: pd.Series, higher_is_better: bool) -> pd.Series:
-    lo, hi = series.min(), series.max()
-    if hi == lo:
-        return pd.Series(1.0, index=series.index)
-    normed = (series - lo) / (hi - lo)
-    return normed if higher_is_better else 1 - normed
+def normalize_budget_fit(price: float, budget_max: float | None) -> float:
+    """Price <= budget -> 1.0; the more it exceeds budget, the closer to 0.0."""
+    if budget_max is None or budget_max <= 0:
+        return 1.0
+    if price <= budget_max:
+        return 1.0
+    over_ratio = (price - budget_max) / budget_max
+    return max(0.0, 1.0 - over_ratio)
 
 
-def _score(df: pd.DataFrame, weights: dict, granularity: str) -> pd.DataFrame:
-    col_index = 0 if granularity == "neighborhood" else 1
-    active = {
-        name: (col_map[col_index], col_map[2], weight)
-        for name, weight in weights.items()
-        if weight > 0 and (col_map := PRIORITY_MAP.get(name)) is not None
-    }
-    if not active:
-        raise ValueError("No valid positive-weight priorities given")
-
-    total_weight = sum(weight for _, _, weight in active.values())
-    weighted_sum = pd.Series(0.0, index=df.index)
-    for column, higher_is_better, weight in active.values():
-        weighted_sum += _normalize(df[column], higher_is_better) * weight
-
-    scored = df.copy()
-    scored["match_score"] = (weighted_sum / total_weight * 100).round(1)
-    return scored.sort_values("match_score", ascending=False).reset_index(drop=True)
-
-
-def recommend_neighborhoods(weights: dict, top_n: int = 5) -> pd.DataFrame:
-    profiles = load_neighborhood_profiles()
-    scored = _score(profiles, weights, granularity="neighborhood")
-    display_cols = ["neighborhood", "district", "match_score", "avg_rent_try", "listing_count"]
-    return scored[display_cols].head(top_n)
-
-
-def recommend_listings(
-    weights: dict,
-    budget_try: float | None = None,
-    room_type: str | None = None,
-    top_n: int = 10,
-) -> pd.DataFrame:
-    listings = load_listings()
-    if budget_try is not None:
-        listings = listings[listings["rent_try"] <= budget_try]
-    if room_type is not None:
-        listings = listings[listings["room_type"] == room_type]
-    if listings.empty:
-        return listings
-
-    scored = _score(listings, weights, granularity="listing")
-    display_cols = [
-        "listing_id", "neighborhood", "room_type", "size_m2", "rent_try", "match_score",
-    ]
-    return scored[display_cols].head(top_n)
-
-
-if __name__ == "__main__":
-    student_priorities = {"affordability": 3, "university_proximity": 3, "public_transport": 1}
-    print("Öğrenci profiline göre önerilen mahalleler:")
-    print(recommend_neighborhoods(student_priorities))
-
-    family_priorities = {"safety": 3, "green_space": 2, "quietness": 2, "hospital_proximity": 1}
-    print("\nAile profiline göre önerilen ilanlar (bütçe <= 25000 TL, 3+1):")
-    print(recommend_listings(family_priorities, budget_try=25000, room_type="3+1"))
+def compute_listing_score(listing: dict, weights: dict[str, float] = DEFAULT_WEIGHTS) -> float:
+    return sum(weights.get(key, 0.0) * listing.get(key, 0.0) for key in SCORE_KEYS)
