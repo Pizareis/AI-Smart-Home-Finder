@@ -1,0 +1,9 @@
+neighborhood,district,avg_rent_per_m2_try,avg_distance_to_university_km,avg_distance_to_center_km,avg_distance_to_hospital_km,green_space_score,safety_score,public_transport_score,noise_level,avg_rent_try,listing_count
+Görükle,Nilüfer,170,1.0,14.0,6.0,6.0,6.5,6.0,6.5,13999.933333333332,150
+Özlüce,Nilüfer,190,6.0,9.0,4.0,6.5,7.0,6.5,5.0,16079.133333333333,150
+Beşevler,Nilüfer,230,4.0,6.0,3.0,6.0,7.5,8.5,6.0,19218.466666666667,150
+Nilüfer,Nilüfer,260,7.5,7.0,3.5,7.5,8.0,7.5,4.5,21831.133333333335,150
+Çekirge,Osmangazi,280,9.0,3.0,1.0,7.0,8.5,7.0,5.0,22988.466666666667,150
+Heykel,Osmangazi,250,10.0,0.5,2.0,4.5,6.5,9.0,8.0,21870.533333333333,150
+Yıldırım,Yıldırım,175,12.0,6.0,4.5,5.0,6.0,6.0,6.0,15151.666666666666,150
+Mudanya,Mudanya,210,22.0,20.0,8.0,8.5,7.5,4.0,3.0,17307.866666666665,150
