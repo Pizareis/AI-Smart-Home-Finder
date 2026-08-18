@@ -28,6 +28,12 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
+## Testler
+
+```bash
+pytest
+```
+
 ## Veri Seti
 
 *(Doldurulacak: kaynak / sentetik uretim yontemi aciklamasi)*
