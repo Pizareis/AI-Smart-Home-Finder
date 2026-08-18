@@ -15,117 +15,157 @@ DISTRICT_STATS_PATH = Path("data/processed/district_stats.csv")
 
 CUSTOM_CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
 
 .stApp {
     background:
-        radial-gradient(circle at 12% 8%, rgba(139, 92, 246, 0.28), transparent 42%),
-        radial-gradient(circle at 88% 15%, rgba(6, 182, 212, 0.22), transparent 45%),
-        radial-gradient(circle at 50% 100%, rgba(236, 72, 153, 0.14), transparent 50%),
-        #0b0d17;
+        radial-gradient(circle at 10% 0%, rgba(139, 92, 246, 0.35), transparent 40%),
+        radial-gradient(circle at 90% 10%, rgba(6, 182, 212, 0.28), transparent 45%),
+        radial-gradient(circle at 50% 105%, rgba(236, 72, 153, 0.20), transparent 55%),
+        radial-gradient(circle at 100% 100%, rgba(34, 211, 238, 0.10), transparent 50%),
+        #08090f;
+    background-attachment: fixed;
 }
 
-.block-container { padding-top: 2.5rem; padding-bottom: 4rem; max-width: 760px; }
+.block-container { padding-top: 3rem; padding-bottom: 4rem; max-width: 780px; }
 
-/* Hero */
+[data-testid="stMarkdownContainer"] p { color: #d4d4e0; }
+
+/* ---------- Hero ---------- */
+.hero-wrap { text-align: center; margin-bottom: 2rem; }
 .hero-badge {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: rgba(139, 92, 246, 0.15);
-    border: 1px solid rgba(139, 92, 246, 0.4);
-    color: #c4b5fd;
-    padding: 6px 14px; border-radius: 999px;
-    font-size: 0.8rem; font-weight: 600; letter-spacing: 0.02em;
-    margin-bottom: 14px;
+    display: inline-flex; align-items: center; gap: 7px;
+    background: linear-gradient(90deg, rgba(139,92,246,0.18), rgba(6,182,212,0.18));
+    border: 1px solid rgba(196, 181, 253, 0.35);
+    color: #d8c9ff;
+    padding: 7px 16px; border-radius: 999px;
+    font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    margin-bottom: 18px;
 }
 .hero-title {
-    font-size: 2.6rem; font-weight: 800; line-height: 1.15; margin: 0 0 10px 0;
-    background: linear-gradient(90deg, #ffffff 20%, #c4b5fd 60%, #67e8f9 100%);
+    font-size: 3rem; font-weight: 900; line-height: 1.1; margin: 0 0 12px 0; letter-spacing: -0.02em;
+    background: linear-gradient(100deg, #ffffff 15%, #d8c9ff 45%, #67e8f9 85%);
     -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
 }
-.hero-subtitle { color: #a1a1b5; font-size: 1.02rem; line-height: 1.55; margin-bottom: 1.6rem; }
-
-/* Glass containers (st.container(border=True)) */
-[data-testid="stVerticalBlockBorderWrapper"] {
-    background: rgba(255, 255, 255, 0.055) !important;
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
-    border-radius: 20px !important;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255,255,255,0.06);
-    padding: 6px 2px;
-    margin-bottom: 16px;
-    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+.hero-subtitle {
+    color: #9d9db4; font-size: 1.04rem; line-height: 1.6; margin: 0 auto 22px auto; max-width: 540px;
 }
-[data-testid="stVerticalBlockBorderWrapper"]:hover {
-    border-color: rgba(139, 92, 246, 0.5) !important;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(139, 92, 246, 0.15);
+.hero-stats { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.hero-stat {
+    background: rgba(255,255,255,0.045);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px; padding: 8px 16px;
+    font-size: 0.82rem; color: #c3c3d6; font-weight: 600;
+    backdrop-filter: blur(10px);
+}
+.hero-stat b { color: #ffffff; font-weight: 800; }
+
+/* ---------- Glass form panel ---------- */
+[data-testid="stVerticalBlockBorderWrapper"] {
+    background: linear-gradient(160deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02)) !important;
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+    border: 1px solid rgba(255, 255, 255, 0.13) !important;
+    border-radius: 22px !important;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.08);
+    padding: 8px 4px;
+    margin-bottom: 18px;
 }
 
 /* Text area */
 [data-testid="stTextArea"] textarea {
-    background: rgba(255, 255, 255, 0.04) !important;
-    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    background: rgba(255, 255, 255, 0.045) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
     border-radius: 14px !important;
     color: #f2f2f7 !important;
-    font-size: 0.96rem;
+    font-size: 0.97rem;
     padding: 14px !important;
 }
 [data-testid="stTextArea"] textarea:focus {
-    border-color: #8b5cf6 !important;
-    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.22) !important;
+    border-color: #a78bfa !important;
+    box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.25) !important;
 }
 [data-testid="stTextArea"] label { color: #cfcfe0 !important; font-weight: 600; }
 
 /* Primary button */
 div.stButton > button {
-    background: linear-gradient(90deg, #8b5cf6, #6366f1 55%, #06b6d4);
+    background: linear-gradient(90deg, #8b5cf6, #6366f1 50%, #06b6d4);
+    background-size: 160% 100%;
     color: white; border: none; border-radius: 999px;
-    padding: 0.65rem 1.6rem; font-weight: 700; letter-spacing: 0.01em;
-    box-shadow: 0 6px 24px rgba(139, 92, 246, 0.35);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    padding: 0.7rem 1.6rem; font-weight: 700; font-size: 1rem; letter-spacing: 0.01em;
+    box-shadow: 0 8px 28px rgba(139, 92, 246, 0.4);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background-position 0.4s ease;
     width: 100%;
 }
 div.stButton > button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 30px rgba(139, 92, 246, 0.5);
+    box-shadow: 0 12px 34px rgba(139, 92, 246, 0.55);
+    background-position: 100% 0;
     color: white;
 }
 div.stButton > button:active { transform: translateY(0); }
 
-/* Tabs */
-[data-baseweb="tab-list"] { gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+/* ---------- Tabs ---------- */
+[data-baseweb="tab-list"] { gap: 4px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 6px; }
 [data-baseweb="tab"] {
-    color: #a1a1b5 !important; font-weight: 600; border-radius: 10px 10px 0 0 !important;
+    color: #8f8fa8 !important; font-weight: 700; border-radius: 12px 12px 0 0 !important;
+    padding: 10px 16px !important;
 }
-[data-baseweb="tab"] p { font-size: 0.94rem; }
+[data-baseweb="tab"] p { font-size: 0.93rem; }
 [aria-selected="true"][data-baseweb="tab"] {
     color: #ffffff !important;
-    background: rgba(139, 92, 246, 0.14) !important;
+    background: linear-gradient(180deg, rgba(139,92,246,0.22), rgba(139,92,246,0.06)) !important;
 }
-[data-baseweb="tab-highlight"] { background: linear-gradient(90deg, #8b5cf6, #06b6d4) !important; height: 3px !important; }
+[data-baseweb="tab-highlight"] { background: linear-gradient(90deg, #8b5cf6, #06b6d4) !important; height: 3px !important; border-radius: 3px; }
 
-/* Metrics */
-[data-testid="stMetricLabel"] { color: #8f8fa8 !important; font-size: 0.78rem !important; letter-spacing: 0.03em; }
-[data-testid="stMetricValue"] { color: #f2f2f7 !important; font-size: 1.15rem !important; }
+/* ---------- Listing cards (fully custom HTML) ---------- */
+.result-caption {
+    color: #7d7d95; font-size: 0.82rem; font-weight: 600; margin: 4px 0 14px 2px;
+}
+.listing-card {
+    position: relative;
+    background: linear-gradient(160deg, rgba(255,255,255,0.065), rgba(255,255,255,0.015));
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.11);
+    border-radius: 18px;
+    padding: 18px 20px 16px 20px;
+    margin-bottom: 14px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.32);
+    overflow: hidden;
+    transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+.listing-card:hover {
+    border-color: rgba(255,255,255,0.22);
+    transform: translateY(-3px);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+}
+.listing-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+.listing-district { font-size: 1.05rem; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 6px; }
+.listing-district .pin { opacity: 0.75; font-size: 0.9rem; }
+.match-badge {
+    flex-shrink: 0; font-size: 0.76rem; font-weight: 800; padding: 5px 11px; border-radius: 999px;
+    white-space: nowrap;
+}
+.listing-price { font-size: 1.5rem; font-weight: 800; color: #ffffff; margin-bottom: 12px; }
+.listing-price span { font-size: 0.85rem; font-weight: 600; color: #8f8fa8; margin-left: 3px; }
+.listing-pills { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.pill {
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    color: #c3c3d6; font-size: 0.8rem; font-weight: 600;
+    padding: 5px 11px; border-radius: 10px;
+}
+.score-track { height: 6px; border-radius: 999px; background: rgba(255,255,255,0.08); overflow: hidden; margin-bottom: 12px; }
+.score-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #8b5cf6, #06b6d4); }
+.listing-comment { color: #a8a8bd; font-size: 0.88rem; line-height: 1.5; }
 
-/* Card title row */
-.card-title { font-size: 1.1rem; font-weight: 700; color: #f2f2f7; margin: 4px 0 2px 4px; }
-.card-price { color: #67e8f9; font-weight: 700; }
-.card-comment { color: #b8b8cc; font-size: 0.9rem; padding: 0 4px 6px 4px; }
-
-/* Alerts */
+/* ---------- Alerts ---------- */
 [data-testid="stInfo"], [data-testid="stAlert"] {
     background: rgba(139, 92, 246, 0.1) !important;
     border: 1px solid rgba(139, 92, 246, 0.3) !important;
-    border-radius: 14px !important;
+    border-radius: 16px !important;
     backdrop-filter: blur(10px);
-}
-
-/* Progress bar (score) */
-div[data-testid="stProgress"] > div > div {
-    background: linear-gradient(90deg, #8b5cf6, #06b6d4) !important;
 }
 
 footer, #MainMenu { visibility: hidden; }
@@ -142,36 +182,74 @@ def load_data():
     return pd.read_csv(LISTINGS_PATH), pd.read_csv(DISTRICT_STATS_PATH)
 
 
+def format_try(amount: float) -> str:
+    return f"{amount:,.0f}".replace(",", ".")
+
+
+def score_tier(score: float) -> dict:
+    if score >= 0.8:
+        return {"color": "#34d399", "bg": "rgba(52,211,153,0.14)", "border": "rgba(52,211,153,0.4)", "glow": "rgba(52,211,153,0.25)", "label": "Mükemmel eşleşme"}
+    if score >= 0.6:
+        return {"color": "#c4b5fd", "bg": "rgba(139,92,246,0.16)", "border": "rgba(139,92,246,0.4)", "glow": "rgba(139,92,246,0.25)", "label": "İyi eşleşme"}
+    return {"color": "#67e8f9", "bg": "rgba(103,232,249,0.12)", "border": "rgba(103,232,249,0.35)", "glow": "rgba(103,232,249,0.2)", "label": "Uygun seçenek"}
+
+
 MAX_CARDS_PER_GROUP = 10
 
 
 def render_listing_group(listings: pd.DataFrame) -> None:
     if len(listings) > MAX_CARDS_PER_GROUP:
-        st.caption(f"En uygun {MAX_CARDS_PER_GROUP} ilan gösteriliyor · toplam {len(listings)} sonuç bulundu")
+        st.markdown(
+            f'<div class="result-caption">En uygun {MAX_CARDS_PER_GROUP} ilan gösteriliyor '
+            f"· toplam {len(listings)} sonuç bulundu</div>",
+            unsafe_allow_html=True,
+        )
     for _, row in listings.head(MAX_CARDS_PER_GROUP).iterrows():
         render_listing_card(row)
 
 
 def render_listing_card(row: pd.Series) -> None:
-    with st.container(border=True):
-        st.markdown(
-            f'<div class="card-title">{row["district"]} '
-            f'<span class="card-price">· {row["price"]:,.0f} TL</span></div>'.replace(",", "."),
-            unsafe_allow_html=True,
-        )
-        cols = st.columns(3)
-        cols[0].metric("Alan", f"{row.get('area', '—'):.0f} m²" if "area" in row else "—")
-        cols[1].metric("Oda", row.get("room_count", "—"))
-        cols[2].metric("Skor", f"{row['score']:.2f}")
-        st.progress(min(max(row["score"], 0.0), 1.0))
-        st.markdown(f'<div class="card-comment">{build_listing_comment(row)}</div>', unsafe_allow_html=True)
+    score = min(max(row["score"], 0.0), 1.0)
+    tier = score_tier(score)
+    area = f"{row['area']:.0f} m²" if "area" in row and pd.notna(row["area"]) else "—"
+    room = row.get("room_count", "—")
+
+    card_style = f"border-left: 4px solid {tier['color']};"
+    badge_style = f"background:{tier['bg']}; color:{tier['color']}; border:1px solid {tier['border']};"
+    html = f"""
+    <div class="listing-card" style="{card_style}">
+        <div class="listing-head">
+            <div class="listing-district"><span class="pin">📍</span>{row['district']}</div>
+            <div class="match-badge" style="{badge_style}">{round(score * 100)}% · {tier['label']}</div>
+        </div>
+        <div class="listing-price">{format_try(row['price'])} TL<span>/ay</span></div>
+        <div class="listing-pills">
+            <span class="pill">🛏️ {room}</span>
+            <span class="pill">📐 {area}</span>
+        </div>
+        <div class="score-track"><div class="score-fill" style="width:{score * 100:.0f}%;"></div></div>
+        <div class="listing-comment">{build_listing_comment(row)}</div>
+    </div>
+    """
+    st.markdown(html, unsafe_allow_html=True)
 
 
-st.markdown('<div class="hero-badge">✨ AI-Powered · Bursa</div>', unsafe_allow_html=True)
-st.markdown('<div class="hero-title">Smart Home Finder</div>', unsafe_allow_html=True)
 st.markdown(
-    '<div class="hero-subtitle">Kendinizi anlatın — yaş, öğrenci/çalışan, okul/iş konumu, bütçe, '
-    'oda tercihi, öncelikler. Yapay zeka destekli öneri sistemimiz size en uygun semtleri bulsun.</div>',
+    """
+    <div class="hero-wrap">
+        <div class="hero-badge">✨ AI-Powered · Bursa</div>
+        <div class="hero-title">Smart Home Finder</div>
+        <div class="hero-subtitle">
+            Kendinizi anlatın — yaş, öğrenci/çalışan, okul/iş konumu, bütçe, oda tercihi, öncelikler.
+            Yapay zeka destekli öneri sistemimiz size en uygun semtleri bulsun.
+        </div>
+        <div class="hero-stats">
+            <div class="hero-stat"><b>8</b> semt</div>
+            <div class="hero-stat"><b>1.200+</b> ilan</div>
+            <div class="hero-stat"><b>3</b> gruplu öneri</div>
+        </div>
+    </div>
+    """,
     unsafe_allow_html=True,
 )
 
