@@ -8,10 +8,11 @@ import streamlit as st
 from src.nlp_parser import KNOWN_DISTRICTS, parse_user_input
 from src.recommender import build_listing_comment, recommend
 
-st.set_page_config(page_title="AI-Powered Smart Home Finder", page_icon="\U0001F3E0", layout="centered")
+st.set_page_config(page_title="AI-Powered Smart Home Finder", page_icon="\U0001F3E0", layout="wide")
 
 LISTINGS_PATH = Path("data/processed/listings.csv")
 DISTRICT_STATS_PATH = Path("data/processed/district_stats.csv")
+REPO_URL = "https://github.com/Pizareis/AI-Smart-Home-Finder"
 
 CUSTOM_CSS = """
 <style>
@@ -19,22 +20,44 @@ CUSTOM_CSS = """
 
 html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
 
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes pulseGlow { 0%, 100% { opacity: 0.55; } 50% { opacity: 0.9; } }
+
 .stApp {
     background:
-        radial-gradient(circle at 10% 0%, rgba(139, 92, 246, 0.35), transparent 40%),
-        radial-gradient(circle at 90% 10%, rgba(6, 182, 212, 0.28), transparent 45%),
-        radial-gradient(circle at 50% 105%, rgba(236, 72, 153, 0.20), transparent 55%),
-        radial-gradient(circle at 100% 100%, rgba(34, 211, 238, 0.10), transparent 50%),
+        radial-gradient(circle at 8% 0%, rgba(139, 92, 246, 0.38), transparent 38%),
+        radial-gradient(circle at 92% 8%, rgba(6, 182, 212, 0.30), transparent 42%),
+        radial-gradient(circle at 50% 100%, rgba(236, 72, 153, 0.22), transparent 55%),
+        radial-gradient(circle at 100% 60%, rgba(34, 211, 238, 0.14), transparent 45%),
+        linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px),
         #08090f;
+    background-size: auto, auto, auto, auto, 44px 44px, 44px 44px, auto;
     background-attachment: fixed;
 }
 
-.block-container { padding-top: 3rem; padding-bottom: 4rem; max-width: 780px; }
+[data-testid="stToolbar"] { visibility: hidden; }
+footer, #MainMenu { visibility: hidden; }
 
+.block-container { padding-top: 1.5rem; padding-bottom: 4rem; max-width: 1120px; margin: 0 auto; }
 [data-testid="stMarkdownContainer"] p { color: #d4d4e0; }
 
+/* ---------- Top nav ---------- */
+.topnav {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 4px 28px 4px; margin-bottom: 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.topnav-brand { font-weight: 800; font-size: 1.05rem; color: #f2f2f7; display: flex; align-items: center; gap: 8px; }
+.topnav-link {
+    font-size: 0.85rem; font-weight: 600; color: #a1a1b5; text-decoration: none;
+    border: 1px solid rgba(255,255,255,0.14); padding: 6px 14px; border-radius: 999px;
+    transition: color 0.15s ease, border-color 0.15s ease;
+}
+.topnav-link:hover { color: #ffffff; border-color: rgba(139,92,246,0.5); }
+
 /* ---------- Hero ---------- */
-.hero-wrap { text-align: center; margin-bottom: 2rem; }
+.hero-wrap { text-align: center; margin: 1.5rem 0 2.5rem 0; animation: fadeInUp 0.7s ease both; }
 .hero-badge {
     display: inline-flex; align-items: center; gap: 7px;
     background: linear-gradient(90deg, rgba(139,92,246,0.18), rgba(6,182,212,0.18));
@@ -42,25 +65,43 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
     color: #d8c9ff;
     padding: 7px 16px; border-radius: 999px;
     font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
-    margin-bottom: 18px;
+    margin-bottom: 20px;
 }
 .hero-title {
-    font-size: 3rem; font-weight: 900; line-height: 1.1; margin: 0 0 12px 0; letter-spacing: -0.02em;
+    font-size: 3.4rem; font-weight: 900; line-height: 1.08; margin: 0 0 14px 0; letter-spacing: -0.02em;
     background: linear-gradient(100deg, #ffffff 15%, #d8c9ff 45%, #67e8f9 85%);
     -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
 }
 .hero-subtitle {
-    color: #9d9db4; font-size: 1.04rem; line-height: 1.6; margin: 0 auto 22px auto; max-width: 540px;
+    color: #9d9db4; font-size: 1.08rem; line-height: 1.65; margin: 0 auto 26px auto; max-width: 600px;
 }
-.hero-stats { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.hero-stats { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
 .hero-stat {
     background: rgba(255,255,255,0.045);
     border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 14px; padding: 8px 16px;
-    font-size: 0.82rem; color: #c3c3d6; font-weight: 600;
+    border-radius: 14px; padding: 9px 18px;
+    font-size: 0.84rem; color: #c3c3d6; font-weight: 600;
     backdrop-filter: blur(10px);
 }
 .hero-stat b { color: #ffffff; font-weight: 800; }
+
+/* ---------- Feature strip ---------- */
+.feature-row { animation: fadeInUp 0.8s ease both; margin-bottom: 2rem; }
+.feature-card {
+    background: linear-gradient(160deg, rgba(255,255,255,0.06), rgba(255,255,255,0.015));
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 18px; padding: 20px 18px; height: 100%;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.feature-card:hover { transform: translateY(-3px); border-color: rgba(139,92,246,0.4); }
+.feature-icon {
+    width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, rgba(139,92,246,0.25), rgba(6,182,212,0.25));
+    font-size: 1.2rem; margin-bottom: 12px;
+}
+.feature-title { font-weight: 700; color: #f2f2f7; font-size: 0.98rem; margin-bottom: 6px; }
+.feature-desc { color: #9898ac; font-size: 0.85rem; line-height: 1.5; }
 
 /* ---------- Glass form panel ---------- */
 [data-testid="stVerticalBlockBorderWrapper"] {
@@ -70,7 +111,7 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
     border: 1px solid rgba(255, 255, 255, 0.13) !important;
     border-radius: 22px !important;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.08);
-    padding: 8px 4px;
+    padding: 10px 6px;
     margin-bottom: 18px;
 }
 
@@ -80,7 +121,7 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
     border: 1px solid rgba(255, 255, 255, 0.15) !important;
     border-radius: 14px !important;
     color: #f2f2f7 !important;
-    font-size: 0.97rem;
+    font-size: 0.98rem;
     padding: 14px !important;
 }
 [data-testid="stTextArea"] textarea:focus {
@@ -94,7 +135,7 @@ div.stButton > button {
     background: linear-gradient(90deg, #8b5cf6, #6366f1 50%, #06b6d4);
     background-size: 160% 100%;
     color: white; border: none; border-radius: 999px;
-    padding: 0.7rem 1.6rem; font-weight: 700; font-size: 1rem; letter-spacing: 0.01em;
+    padding: 0.75rem 1.6rem; font-weight: 700; font-size: 1.02rem; letter-spacing: 0.01em;
     box-shadow: 0 8px 28px rgba(139, 92, 246, 0.4);
     transition: transform 0.15s ease, box-shadow 0.15s ease, background-position 0.4s ease;
     width: 100%;
@@ -108,12 +149,12 @@ div.stButton > button:hover {
 div.stButton > button:active { transform: translateY(0); }
 
 /* ---------- Tabs ---------- */
-[data-baseweb="tab-list"] { gap: 4px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 6px; }
+[data-baseweb="tab-list"] { gap: 4px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 10px; }
 [data-baseweb="tab"] {
     color: #8f8fa8 !important; font-weight: 700; border-radius: 12px 12px 0 0 !important;
-    padding: 10px 16px !important;
+    padding: 10px 18px !important;
 }
-[data-baseweb="tab"] p { font-size: 0.93rem; }
+[data-baseweb="tab"] p { font-size: 0.94rem; }
 [aria-selected="true"][data-baseweb="tab"] {
     color: #ffffff !important;
     background: linear-gradient(180deg, rgba(139,92,246,0.22), rgba(139,92,246,0.06)) !important;
@@ -122,7 +163,7 @@ div.stButton > button:active { transform: translateY(0); }
 
 /* ---------- Listing cards (fully custom HTML) ---------- */
 .result-caption {
-    color: #7d7d95; font-size: 0.82rem; font-weight: 600; margin: 4px 0 14px 2px;
+    color: #7d7d95; font-size: 0.84rem; font-weight: 600; margin: 4px 0 16px 2px;
 }
 .listing-card {
     position: relative;
@@ -131,15 +172,16 @@ div.stButton > button:active { transform: translateY(0); }
     border: 1px solid rgba(255,255,255,0.11);
     border-radius: 18px;
     padding: 18px 20px 16px 20px;
-    margin-bottom: 14px;
+    margin-bottom: 16px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.32);
     overflow: hidden;
+    animation: fadeInUp 0.5s ease both;
     transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 .listing-card:hover {
-    border-color: rgba(255,255,255,0.22);
-    transform: translateY(-3px);
-    box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+    border-color: rgba(255,255,255,0.24);
+    transform: translateY(-4px);
+    box-shadow: 0 18px 44px rgba(0,0,0,0.42);
 }
 .listing-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
 .listing-district { font-size: 1.05rem; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 6px; }
@@ -168,11 +210,31 @@ div.stButton > button:active { transform: translateY(0); }
     backdrop-filter: blur(10px);
 }
 
-footer, #MainMenu { visibility: hidden; }
+/* ---------- Footer ---------- */
+.site-footer {
+    margin-top: 3.5rem; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.08);
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;
+}
+.footer-note { color: #6f6f85; font-size: 0.82rem; line-height: 1.5; max-width: 560px; }
+.footer-stack { display: flex; gap: 8px; flex-wrap: wrap; }
+.stack-badge {
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    color: #8f8fa8; font-size: 0.75rem; font-weight: 600; padding: 4px 10px; border-radius: 8px;
+}
 </style>
 """
 
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
+
+st.markdown(
+    f"""
+    <div class="topnav">
+        <div class="topnav-brand">🏠 Smart Home Finder</div>
+        <a class="topnav-link" href="{REPO_URL}" target="_blank">GitHub ↗</a>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 
 @st.cache_data
@@ -188,13 +250,14 @@ def format_try(amount: float) -> str:
 
 def score_tier(score: float) -> dict:
     if score >= 0.8:
-        return {"color": "#34d399", "bg": "rgba(52,211,153,0.14)", "border": "rgba(52,211,153,0.4)", "glow": "rgba(52,211,153,0.25)", "label": "Mükemmel eşleşme"}
+        return {"color": "#34d399", "bg": "rgba(52,211,153,0.14)", "border": "rgba(52,211,153,0.4)", "label": "Mükemmel eşleşme"}
     if score >= 0.6:
-        return {"color": "#c4b5fd", "bg": "rgba(139,92,246,0.16)", "border": "rgba(139,92,246,0.4)", "glow": "rgba(139,92,246,0.25)", "label": "İyi eşleşme"}
-    return {"color": "#67e8f9", "bg": "rgba(103,232,249,0.12)", "border": "rgba(103,232,249,0.35)", "glow": "rgba(103,232,249,0.2)", "label": "Uygun seçenek"}
+        return {"color": "#c4b5fd", "bg": "rgba(139,92,246,0.16)", "border": "rgba(139,92,246,0.4)", "label": "İyi eşleşme"}
+    return {"color": "#67e8f9", "bg": "rgba(103,232,249,0.12)", "border": "rgba(103,232,249,0.35)", "label": "Uygun seçenek"}
 
 
 MAX_CARDS_PER_GROUP = 10
+CARD_COLUMNS = 2
 
 
 def render_listing_group(listings: pd.DataFrame) -> None:
@@ -204,14 +267,17 @@ def render_listing_group(listings: pd.DataFrame) -> None:
             f"· toplam {len(listings)} sonuç bulundu</div>",
             unsafe_allow_html=True,
         )
-    for _, row in listings.head(MAX_CARDS_PER_GROUP).iterrows():
-        render_listing_card(row)
+    rows = listings.head(MAX_CARDS_PER_GROUP).to_dict("records")
+    cols = st.columns(CARD_COLUMNS, gap="medium")
+    for i, row in enumerate(rows):
+        with cols[i % CARD_COLUMNS]:
+            render_listing_card(row)
 
 
-def render_listing_card(row: pd.Series) -> None:
+def render_listing_card(row: dict) -> None:
     score = min(max(row["score"], 0.0), 1.0)
     tier = score_tier(score)
-    area = f"{row['area']:.0f} m²" if "area" in row and pd.notna(row["area"]) else "—"
+    area = f"{row['area']:.0f} m²" if row.get("area") is not None and pd.notna(row.get("area")) else "—"
     room = row.get("room_count", "—")
 
     card_style = f"border-left: 4px solid {tier['color']};"
@@ -253,16 +319,39 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-with st.container(border=True):
-    user_text = st.text_area(
-        "Kendinizi tanıtın",
-        placeholder="24 yaşındayım, Bursa'da öğrenciyim. Üniversitem Nilüfer'de. "
-        "Aylık maksimum 20.000 TL verebilirim. 1+1 veya 2+1 istiyorum. "
-        "Ulaşım ve güvenlik benim için önemli.",
-        height=120,
-        label_visibility="collapsed",
-    )
-    submitted = st.button("✨ Öneri Al", type="primary")
+st.markdown('<div class="feature-row">', unsafe_allow_html=True)
+feat_cols = st.columns(3, gap="medium")
+features = [
+    ("📝", "Kendinizi Tanıtın", "Yaşınızı, bütçenizi, oda tercihinizi ve önceliklerinizi serbest metinle anlatın."),
+    ("🧠", "AI Analiz Etsin", "Doğal dil işleme metninizi yapılandırılmış verilere çevirir, ağırlıklı puanlama devreye girer."),
+    ("🎯", "3 Gruplu Öneri Alın", "İstediğiniz semt, alternatifleriniz ve sistemin gerekçeli önerileri ayrı sekmelerde sunulur."),
+]
+for col, (icon, title, desc) in zip(feat_cols, features):
+    with col:
+        st.markdown(
+            f"""
+            <div class="feature-card">
+                <div class="feature-icon">{icon}</div>
+                <div class="feature-title">{title}</div>
+                <div class="feature-desc">{desc}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+st.markdown("</div>", unsafe_allow_html=True)
+
+form_col, _ = st.columns([2, 1])
+with form_col:
+    with st.container(border=True):
+        user_text = st.text_area(
+            "Kendinizi tanıtın",
+            placeholder="24 yaşındayım, Bursa'da öğrenciyim. Üniversitem Nilüfer'de. "
+            "Aylık maksimum 20.000 TL verebilirim. 1+1 veya 2+1 istiyorum. "
+            "Ulaşım ve güvenlik benim için önemli.",
+            height=120,
+            label_visibility="collapsed",
+        )
+        submitted = st.button("✨ Öneri Al", type="primary")
 
 if submitted:
     if not user_text.strip():
@@ -301,3 +390,21 @@ if submitted:
                 else:
                     st.info(result["suggested_reason"])
                     render_listing_group(result["suggested"])
+
+st.markdown(
+    f"""
+    <div class="site-footer">
+        <div class="footer-note">
+            Bu bir portföy/CV projesidir, gerçek bir emlak platformu değildir. İlan verileri
+            araştırılan semt istatistiklerinden türetilmiş <b>sentetik</b> verilerdir.
+        </div>
+        <div class="footer-stack">
+            <span class="stack-badge">Python</span>
+            <span class="stack-badge">pandas</span>
+            <span class="stack-badge">scikit-learn</span>
+            <span class="stack-badge">Streamlit</span>
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
