@@ -88,6 +88,22 @@ def _suggest_districts(
     return candidates.reset_index(drop=True), " ".join(reasons)
 
 
+def build_listing_comment(row: pd.Series, threshold: float = 0.8) -> str:
+    strengths = []
+    if row.get("budget", 0) >= threshold:
+        strengths.append("bütçenize uygun")
+    if row.get("transport", 0) >= threshold:
+        strengths.append("ulaşıma yakın")
+    if row.get("distance", 0) >= threshold:
+        strengths.append("okula/işe yakın")
+    if row.get("safety", 0) >= threshold:
+        strengths.append("güvenli bir bölgede")
+
+    if not strengths:
+        return "Orta düzeyde uygun bir seçenek."
+    return "Bu ilan " + ", ".join(strengths) + "."
+
+
 def recommend(listings: pd.DataFrame, district_stats: pd.DataFrame, profile: UserProfile) -> dict:
     """Returns {"target": df, "alternatives": df, "suggested": df, "suggested_reason": str}."""
     weights = adjust_weights(profile.priorities)
